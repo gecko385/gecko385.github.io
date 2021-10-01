@@ -1,37 +1,117 @@
-## Welcome to GitHub Pages
+# Welcome to Gecko385's homepage
 
-You can use the [editor on GitHub](https://github.com/gecko385/gecko385.github.io/edit/main/README.md) to maintain and preview the content for your website in Markdown files.
+This contains links to my GIT projects: 
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+## XML::Scraper
 
-### Markdown
+A Perl [module](https://github.com/gecko385/XML-Scraper) for parsing data out of XML using XPath expressions. The extract is specified in a YAML like format. This is used to (invisibly ) generate
+the code to extract the data, which is returned to the application. Example:
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
+```perl
+!/usr/bin/perl
+use XML::LibXML qw(:libxml);
+use XML::Scraper;
+use Data::Dumper::Concise;
+use File::Slurp;
+use YAML;
+use JSON;
 
-```markdown
-Syntax highlighted code block
+my $config_file = shift or die "need config file";
+my $xml_file    = shift or die "need XML ";
+my $output_file = shift or die "Need outout file";
 
-# Header 1
-## Header 2
-### Header 3
+my $config = YAML::LoadFile $config_file;
+my $json = JSON->new->pretty(1);
+my $dom = XML::LibXML->load_xml(location => $xml_file );
+my $scraper = XML::Scraper->new;
 
-- Bulleted
-- List
+write_file($output_file, $json->encode($scraper->parseDOM($dom,$config})));
 
-1. Numbered
-2. List
-
-**Bold** and _Italic_ and `Code` text
-
-[Link](url) and ![Image](src)
+print Data::Dumper::Concise::Dumper($scraper->getCode());
 ```
 
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
+It does save a lot of time . Link to code:
 
-### Jekyll Themes
+[XML-Scraper](https://github.com/gecko385/XML-Scraper)
 
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/gecko385/gecko385.github.io/settings/pages). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
+Here's a specification for pulling class definitions out of Doxygen C++ class XML files.
 
-### Support or Contact
+```YAML
+classes :
+    _class :                 "@class:findnodes:/doxygen/compounddef"
+    class :
+        id :                 "getAttribute:id"
+        kind :               "getAttribute:kind"
+        name :               "findvalue:./compoundname"
 
-Having trouble with Pages? Check out our [documentation](https://docs.github.com/categories/github-pages-basics/) or [contact support](https://support.github.com/contact) and we’ll help you sort it out.
+        _baseclasses :       "@base-class:findnodes:./basecompoundref[@prot=\"public\"]"
+        base-class :
+            name :           "to_literal:self"
+            refid :          "getAttribute:refid"
+        _includes :          "@file:findnodes:./includes"
+
+        file :
+            name :           "to_literal:self"
+            refid :          "getAttribute:refid"
+
+        _innerclass :        '@innerclass:findnodes:./innerclass[@prot="public"]'
+        innerclass :
+            name :            "to_literal:self"
+            refid :           "getAttribute:refid"
+
+        _pubtypes :          "@typedef:findnodes:./sectiondef[@kind=\"public-type\"]/memberdef[@kind=\"typedef\"]"
+        typedef:
+            type :          "findvalue:./type"
+            definition :    "findvalue:./definition"
+            argsstring :    "findvalue:./argsstring"
+            name :          "findvalue:./name"
+
+        _pub-enum :         "@enums:findnodes:./sectiondef[@kind=\"public-type\"]/memberdef[@kind=\"enum\"]"
+        enums :
+            type :           "findvalue:./type"
+            name :           "findvalue:./name"
+            _values :        "@values:findnodes:./enumvalue"
+            values :
+                name :        "findvalue:./name"
+                initializer : "findvalue:./initializer"
+
+        _pub-vars :           "@variables:findnodes:./sectiondef[@kind=\"public-attrib\"]/memberdef[@kind=\"variable\"]"
+        variables :
+            type :          "findvalue:./type"
+            definition :    "findvalue:./definition"
+            argsstring :    "findvalue:./argsstring"
+            name :          "findvalue:./name"
+
+        _pub-methods :      "@methods:findnodes:./sectiondef[@kind=\"public-func\"]/memberdef"
+        methods :
+            type :          "findvalue:./type"
+            definition :    "findvalue:./definition"
+            argsstring :    "findvalue:./argsstring"
+            name :          "findvalue:./name"
+            _params :       "@params:findnodes:./param"
+            params :
+                type :          "findvalue:./type"
+                defname :       "findvalue:./defname"
+                defval :        "findvalue:./defval"
+                declname :      "findvalue:./declname"
+
+        _pub-static-vars :   "@static-variables:findnodes:./sectiondef[@kind=\"public-static-attrib\"]/memberdef[@kind=\"variable\"]"
+        static-variables :
+            type :          "findvalue:./type"
+            definition :    "findvalue:./definition"
+            argsstring :    "findvalue:./argsstring"
+            name :          "findvalue:./name"
+
+        _pub-static-methods :      "@static-methods:findnodes:./sectiondef[@kind=\"public-static-func\"]/memberdef"
+        static-methods :
+            type :          "findvalue:./type"
+            definition :    "findvalue:./definition"
+            argsstring :    "findvalue:./argsstring"
+            name :          "findvalue:./name"
+            _params :       "@params:findnodes:./param"
+            params :
+                type :          "findvalue:./type"
+                defname :       "findvalue:./defname"
+                defval :        "findvalue:./defval"
+                declname :      "findvalue:./declname"
+```
